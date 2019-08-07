@@ -1,10 +1,9 @@
-package cn.wildfirechat.app;
+package cn.wildfirechat.app.service;
 
-
-import cn.wildfirechat.app.pojo.ConfirmSessionRequest;
-import cn.wildfirechat.app.pojo.CreateSessionRequest;
-import cn.wildfirechat.app.pojo.LoginResponse;
-import cn.wildfirechat.app.pojo.SessionOutput;
+import cn.wildfirechat.app.config.IMConfig;
+import cn.wildfirechat.app.pojo.*;
+import cn.wildfirechat.app.util.CheckParamUtil;
+import cn.wildfirechat.app.util.Utils;
 import cn.wildfirechat.common.ErrorCode;
 import cn.wildfirechat.pojos.*;
 import cn.wildfirechat.proto.ProtoConstants;
@@ -12,9 +11,6 @@ import cn.wildfirechat.sdk.ChatConfig;
 import cn.wildfirechat.sdk.MessageAdmin;
 import cn.wildfirechat.sdk.UserAdmin;
 import cn.wildfirechat.sdk.model.IMResult;
-import com.github.qcloudsms.SmsSingleSender;
-import com.github.qcloudsms.SmsSingleSenderResult;
-import com.github.qcloudsms.httpclient.HTTPException;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,18 +19,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.wildfirechat.app.RestResult.RestCode.ERROR_SESSION_NOT_SCANED;
-import static cn.wildfirechat.app.RestResult.RestCode.ERROR_SESSION_NOT_VERIFIED;
+import static cn.wildfirechat.app.pojo.RestResult.RestCode.ERROR_SESSION_NOT_SCANED;
+import static cn.wildfirechat.app.pojo.RestResult.RestCode.ERROR_SESSION_NOT_VERIFIED;
 
 @org.springframework.stereotype.Service
-public class ServiceImpl implements Service {
+public class LoginServiceImpl implements LoginService {
     static class Count {
         long count;
         long startTime;
+
         void reset() {
             count = 1;
             startTime = System.currentTimeMillis();
@@ -53,7 +49,8 @@ public class ServiceImpl implements Service {
             return true;
         }
     }
-    private static final Logger LOG = LoggerFactory.getLogger(ServiceImpl.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(LoginServiceImpl.class);
     private static ConcurrentHashMap<String, Record> mRecords = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, PCSession> mPCSession = new ConcurrentHashMap<>();
 
@@ -114,7 +111,10 @@ public class ServiceImpl implements Service {
     }
 
     @Override
-    public RestResult login(String mobile, String code, String clientId) {
+    public RestResult login(LoginRequest request) {
+        String code = request.getCode();
+        String mobile = request.getMobile();
+        String clientId = request.getClientId();
         if (StringUtils.isEmpty(superCode) || !code.equals(superCode)) {
             Record record = mRecords.get(mobile);
             if (record == null || !record.getCode().equals(code)) {
@@ -148,7 +148,7 @@ public class ServiceImpl implements Service {
                     LOG.info("Create user failure {}", userIdResult.code);
                     return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
                 }
-            } else if(userResult.getCode() != 0){
+            } else if (userResult.getCode() != 0) {
                 LOG.error("Get user failure {}", userResult.code);
                 return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
             } else {
@@ -211,7 +211,7 @@ public class ServiceImpl implements Service {
         PCSession session = new PCSession();
         session.setClientId(request.getClientId());
         session.setCreateDt(System.currentTimeMillis());
-        session.setDuration(300*1000); //300 seconds
+        session.setDuration(300 * 1000); //300 seconds
 
         if (StringUtils.isEmpty(request.getToken())) {
             request.setToken(UUID.randomUUID().toString());
@@ -248,9 +248,9 @@ public class ServiceImpl implements Service {
                     return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
                 }
             } else {
-                if (session.getStatus() == 0)
+                if (session.getStatus() == 0) {
                     return RestResult.error(ERROR_SESSION_NOT_SCANED);
-                else {
+                } else {
                     return RestResult.error(ERROR_SESSION_NOT_VERIFIED);
                 }
             }
@@ -293,5 +293,98 @@ public class ServiceImpl implements Service {
         } else {
             return RestResult.error(RestResult.RestCode.ERROR_SESSION_EXPIRED);
         }
+    }
+
+    @Override
+    public RestResult registerByCode(LoginRequest request) {
+        String code = request.getCode();
+        String mobile = request.getMobile();
+        String clientId = request.getClientId();
+        String password = request.getPassword();
+        /**
+         * 参数非空校验
+         */
+        RestResult check = CheckParamUtil.check(request.getCode(), request.getMobile(), request.getClientId(), request.getPassword());
+        if (check.getCode() != 0) {
+            return check;
+        }
+        if (StringUtils.isEmpty(superCode) || !code.equals(superCode)) {
+            Record record = mRecords.get(mobile);
+            if (record == null || !record.getCode().equals(code)) {
+                LOG.error("not empty or not correct");
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
+            }
+            if (System.currentTimeMillis() - record.getTimestamp() > 5 * 60 * 1000) {
+                LOG.error("Code expired. timestamp {}, now {}", record.getTimestamp(), System.currentTimeMillis());
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_EXPIRED);
+            }
+        }
+
+        try {
+            //使用电话号码查询用户信息。
+            IMResult<InputOutputUserInfo> userResult = UserAdmin.getUserByName(mobile);
+
+            //如果用户信息不存在，创建用户
+            InputOutputUserInfo user;
+            boolean isNewUser = false;
+            if (userResult.getErrorCode() == ErrorCode.ERROR_CODE_NOT_EXIST) {
+                LOG.info("User not exist, try to create");
+                user = new InputOutputUserInfo();
+                user.setName(mobile);
+                user.setDisplayName(mobile);
+                user.setMobile(mobile);
+                user.setPassword(password);
+                IMResult<OutputCreateUser> userIdResult = UserAdmin.createUser(user);
+                if (userIdResult.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
+                    user.setUserId(userIdResult.getResult().getUserId());
+                    isNewUser = true;
+                } else {
+                    LOG.info("Create user failure {}", userIdResult.code);
+                    return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+                }
+            } else if (userResult.getCode() != 0) {
+                LOG.error("Get user failure {}", userResult.code);
+                return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+            } else {
+                user = userResult.getResult();
+            }
+
+            //使用用户id获取token
+            IMResult<OutputGetIMTokenData> tokenResult = UserAdmin.getUserToken(user.getUserId(), clientId);
+            if (tokenResult.getErrorCode() != ErrorCode.ERROR_CODE_SUCCESS) {
+                LOG.error("Get user failure {}", tokenResult.code);
+                return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+            }
+
+
+            if (isNewUser) {
+                /**
+                 * 新用户，系统管理员发送欢迎信息，返回用户id，token和是否新建
+                 */
+                LoginResponse response = new LoginResponse();
+                response.setUserId(user.getUserId());
+                response.setToken(tokenResult.getResult().getToken());
+                response.setRegister(isNewUser);
+                sendTextMessage(user.getUserId(), mIMConfig.welcome_for_new_user);
+                return RestResult.ok(response);
+            } else {
+                /**
+                 * 否则就是老用户，返回已注册，让用户直接登录
+                 */
+                return RestResult.error(RestResult.RestCode.ERROR_ALREADY_REGISTER);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOG.error("Exception happens {}", e);
+            return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public RestResult loginWithPwd(LoginRequest request) {
+        String mobile = request.getMobile();
+        String password = request.getPassword();
+        String clientId = request.getClientId();
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package cn.wildfirechat.app;
+package cn.wildfirechat.app.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -8,10 +8,10 @@ import org.springframework.context.annotation.PropertySource;
 @ConfigurationProperties(prefix="sms")
 @PropertySource(value = "file:config/tencent_sms.properties")
 public class TencentSMSConfig {
-    int appid;
-    String appkey;
-    int templateId;
-    String superCode;
+    public int appid;
+    public String appkey;
+    public int templateId;
+    public String superCode;
 
     public int getAppid() {
         return appid;

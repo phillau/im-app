@@ -1,4 +1,4 @@
-package cn.wildfirechat.app;
+package cn.wildfirechat.app.pojo;
 
 public class RestResult {
     public enum  RestCode {
@@ -12,7 +12,9 @@ public class RestResult {
         ERROR_SESSION_EXPIRED(8, "会话不存在或已过期"),
         ERROR_SESSION_NOT_VERIFIED(9, "会话没有验证"),
         ERROR_SESSION_NOT_SCANED(10, "会话没有被扫码"),
-        ERROR_SERVER_NOT_IMPLEMENT(11, "功能没有实现");
+        ERROR_SERVER_NOT_IMPLEMENT(11, "功能没有实现"),
+        ERROR_ALREADY_REGISTER(12, "用户已注册"),
+        ERROR_EMPTY_PARAMS(13, "缺少请求参数");
         public int code;
         public String msg;
 

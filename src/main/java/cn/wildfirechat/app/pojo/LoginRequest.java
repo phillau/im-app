@@ -4,6 +4,7 @@ public class LoginRequest {
     private String mobile;
     private String code;
     private String clientId;
+    private String password;
 
     public String getClientId() {
         return clientId;
@@ -27,5 +28,13 @@ public class LoginRequest {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

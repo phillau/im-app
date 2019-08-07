@@ -1,12 +1,14 @@
-package cn.wildfirechat.app;
+package cn.wildfirechat.app.service;
 
 
+import cn.wildfirechat.app.pojo.LoginRequest;
+import cn.wildfirechat.app.pojo.RestResult;
 import cn.wildfirechat.app.pojo.ConfirmSessionRequest;
 import cn.wildfirechat.app.pojo.CreateSessionRequest;
 
-public interface Service {
+public interface LoginService {
     RestResult sendCode(String mobile);
-    RestResult login(String mobile, String code, String clientId);
+    RestResult login(LoginRequest request);
 
 
     RestResult createPcSession(CreateSessionRequest request);
@@ -14,4 +16,8 @@ public interface Service {
 
     RestResult scanPc(String token);
     RestResult confirmPc(ConfirmSessionRequest request);
+
+    RestResult loginWithPwd(LoginRequest request);
+
+    RestResult registerByCode(LoginRequest request);
 }

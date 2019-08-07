@@ -1,4 +1,4 @@
-package cn.wildfirechat.app;
+package cn.wildfirechat.app.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -8,11 +8,11 @@ import org.springframework.context.annotation.PropertySource;
 @ConfigurationProperties(prefix="im")
 @PropertySource(value = "file:config/im.properties", encoding = "UTF-8")
 public class IMConfig {
-    String admin_url;
-    String admin_secret;
+    public String admin_url;
+    public String admin_secret;
 
-    String welcome_for_new_user;
-    String welcome_for_back_user;
+    public String welcome_for_new_user;
+    public String welcome_for_back_user;
 
     public String getAdmin_url() {
         return admin_url;
