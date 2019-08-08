@@ -20,7 +20,7 @@ public class LoginController {
     public Object sendCode(@RequestBody SendCodeRequest request) {
         logger.info("http request: send_code {}" , gson.toJson(request));
         RestResult restResult = mService.sendCode(request.getMobile());
-        logger.info("http response: send_code {}" , gson.toJson(request));
+        logger.info("http response: send_code {}" , gson.toJson(restResult));
         return restResult;
     }
 
@@ -28,7 +28,7 @@ public class LoginController {
     public Object login(@RequestBody LoginRequest request) {
         logger.info("http request: login {}" , gson.toJson(request));
         RestResult restResult = mService.login(request);
-        logger.info("http response: login {}" , gson.toJson(request));
+        logger.info("http response: login {}" , gson.toJson(restResult));
         return restResult;
     }
 
@@ -37,11 +37,11 @@ public class LoginController {
      * @param request
      * @return
      */
-    @PostMapping(value = "/registerByCode", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/im/app/registerByCode", produces = "application/json;charset=UTF-8")
     public Object registerByCode(@RequestBody LoginRequest request) {
         logger.info("http request: registerByCode {}" , gson.toJson(request));
         RestResult restResult = mService.registerByCode(request);
-        logger.info("http response: registerByCode {}" , gson.toJson(request));
+        logger.info("http response: registerByCode {}" , gson.toJson(restResult));
         return restResult;
     }
 
@@ -50,11 +50,24 @@ public class LoginController {
      * @param request
      * @return
      */
-    @PostMapping(value = "/loginWithPwd", produces = "application/json;charset=UTF-8")
+    @PostMapping(value = "/im/app/loginWithPwd", produces = "application/json;charset=UTF-8")
     public Object loginWithPwd(@RequestBody LoginRequest request) {
         logger.info("http request: loginWithPwd {}" , gson.toJson(request));
         RestResult restResult = mService.loginWithPwd(request);
-        logger.info("http response: loginWithPwd {}" , gson.toJson(request));
+        logger.info("http response: loginWithPwd {}" , gson.toJson(restResult));
+        return restResult;
+    }
+
+    /**
+     * 找回密码
+     * @param request
+     * @return
+     */
+    @PostMapping(value = "/im/app/findPwdByCode", produces = "application/json;charset=UTF-8")
+    public Object findPwdByCode(@RequestBody LoginRequest request) {
+        logger.info("http request: loginWithPwd {}" , gson.toJson(request));
+        RestResult restResult = mService.findPwdByCode(request);
+        logger.info("http response: loginWithPwd {}" , gson.toJson(restResult));
         return restResult;
     }
 

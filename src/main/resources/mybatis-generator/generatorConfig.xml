@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+	<properties resource="application.properties" />
+	<!-- <classPathEntry location="/Users/hardy/.m2/repository/mysql/mysql-connector-java/8.0.16/mysql-connector-java-8.0.16.jar"
+		/> -->
+	<context id="mysql" targetRuntime="MyBatis3">
+		<commentGenerator>
+			<property name="suppressDate" value="false" />
+			<property name="suppressAllComments" value="true" />
+		</commentGenerator>
+
+		<jdbcConnection
+			driverClass="${spring.datasource.driver-class-name}"
+			connectionURL="${spring.datasource.url}"
+			userId="${spring.datasource.username}"
+			password="${spring.datasource.password}">
+			<!--设置可以获取tables remarks信息 -->
+			<property name="useInformationSchema" value="true" />
+		</jdbcConnection>
+
+		<javaModelGenerator targetProject="./src/main/java"
+			targetPackage="cn.wildfirechat.app.model">
+			<property name="enableSubPackages" value="true" />
+			<property name="trimStrings" value="true" />
+		</javaModelGenerator>
+
+
+		<sqlMapGenerator targetProject="./src/main/resources"
+			targetPackage="mybatis.mapper">
+			<property name="enableSubPackages" value="true" />
+		</sqlMapGenerator>
+
+
+		<javaClientGenerator
+			targetProject="./src/main/java"
+			targetPackage="cn.wildfirechat.app.mapper" type="XMLMAPPER">
+			<property name="enableSubPackages" value="true" />
+		</javaClientGenerator>
+
+		<!-- 数据库->实体映射配置,table标签可以配置多个 -->
+		<table tableName="t_user" domainObjectName="User"
+			enableDeleteByPrimaryKey="false" enableSelectByPrimaryKey="true"
+			enableUpdateByPrimaryKey="true" enableCountByExample="false"
+			enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false">
+		</table>
+
+	</context>
+</generatorConfiguration>

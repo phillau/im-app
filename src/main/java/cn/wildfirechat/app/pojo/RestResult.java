@@ -2,7 +2,7 @@ package cn.wildfirechat.app.pojo;
 
 public class RestResult {
     public enum  RestCode {
-        SUCCESS(0, "success"),
+        SUCCESS(0, "成功"),
         ERROR_INVALID_MOBILE(1, "无效的电话号码"),
         ERROR_SEND_SMS_OVER_FREQUENCY(3, "请求验证码太频繁"),
         ERROR_SERVER_ERROR(4, "服务器异常"),
@@ -14,7 +14,9 @@ public class RestResult {
         ERROR_SESSION_NOT_SCANED(10, "会话没有被扫码"),
         ERROR_SERVER_NOT_IMPLEMENT(11, "功能没有实现"),
         ERROR_ALREADY_REGISTER(12, "用户已注册"),
-        ERROR_EMPTY_PARAMS(13, "缺少请求参数");
+        ERROR_EMPTY_PARAMS(13, "缺少请求参数"),
+        ERROR_PASSWORD(14, "用户名密码错误"),
+        ERROR_USER_NOT_EXIST(15, "用户不存在");
         public int code;
         public String msg;
 

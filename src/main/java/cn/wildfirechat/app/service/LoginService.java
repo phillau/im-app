@@ -20,4 +20,6 @@ public interface LoginService {
     RestResult loginWithPwd(LoginRequest request);
 
     RestResult registerByCode(LoginRequest request);
+
+    RestResult findPwdByCode(LoginRequest request);
 }

@@ -1,8 +1,11 @@
 package cn.wildfirechat.app.service;
 
 import cn.wildfirechat.app.config.IMConfig;
+import cn.wildfirechat.app.mapper.UserMapper;
+import cn.wildfirechat.app.model.User;
 import cn.wildfirechat.app.pojo.*;
 import cn.wildfirechat.app.util.CheckParamUtil;
+import cn.wildfirechat.app.util.MD5Util;
 import cn.wildfirechat.app.util.Utils;
 import cn.wildfirechat.common.ErrorCode;
 import cn.wildfirechat.pojos.*;
@@ -27,6 +30,9 @@ import static cn.wildfirechat.app.pojo.RestResult.RestCode.ERROR_SESSION_NOT_VER
 
 @org.springframework.stereotype.Service
 public class LoginServiceImpl implements LoginService {
+    @Autowired
+    private UserMapper userMapper;
+
     static class Count {
         long count;
         long startTime;
@@ -115,16 +121,9 @@ public class LoginServiceImpl implements LoginService {
         String code = request.getCode();
         String mobile = request.getMobile();
         String clientId = request.getClientId();
-        if (StringUtils.isEmpty(superCode) || !code.equals(superCode)) {
-            Record record = mRecords.get(mobile);
-            if (record == null || !record.getCode().equals(code)) {
-                LOG.error("not empty or not correct");
-                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
-            }
-            if (System.currentTimeMillis() - record.getTimestamp() > 5 * 60 * 1000) {
-                LOG.error("Code expired. timestamp {}, now {}", record.getTimestamp(), System.currentTimeMillis());
-                return RestResult.error(RestResult.RestCode.ERROR_CODE_EXPIRED);
-            }
+        RestResult checkCodeResult = checkMobileCode(code, mobile);
+        if (checkCodeResult.getCode() != 0) {
+            return checkCodeResult;
         }
 
         try {
@@ -193,6 +192,17 @@ public class LoginServiceImpl implements LoginService {
 
         try {
             IMResult<SendMessageResult> resultSendMessage = MessageAdmin.sendMessage("admin", conversation, payload);
+            if (resultSendMessage != null && resultSendMessage.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
+                LOG.info("send message success");
+            } else {
+                LOG.error("send message error {}", resultSendMessage != null ? resultSendMessage.getErrorCode().code : "unknown");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOG.error("send message error {}", e.getLocalizedMessage());
+        }
+        try {
+            IMResult<SendMessageResult> resultSendMessage = MessageAdmin.sendMessage("customer_service", conversation, payload);
             if (resultSendMessage != null && resultSendMessage.getErrorCode() == ErrorCode.ERROR_CODE_SUCCESS) {
                 LOG.info("send message success");
             } else {
@@ -308,16 +318,12 @@ public class LoginServiceImpl implements LoginService {
         if (check.getCode() != 0) {
             return check;
         }
-        if (StringUtils.isEmpty(superCode) || !code.equals(superCode)) {
-            Record record = mRecords.get(mobile);
-            if (record == null || !record.getCode().equals(code)) {
-                LOG.error("not empty or not correct");
-                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
-            }
-            if (System.currentTimeMillis() - record.getTimestamp() > 5 * 60 * 1000) {
-                LOG.error("Code expired. timestamp {}, now {}", record.getTimestamp(), System.currentTimeMillis());
-                return RestResult.error(RestResult.RestCode.ERROR_CODE_EXPIRED);
-            }
+        /**
+         * 手机验证码校验
+         */
+        RestResult checkCodeResult = checkMobileCode(code, mobile);
+        if (checkCodeResult.getCode() != 0) {
+            return checkCodeResult;
         }
 
         try {
@@ -381,10 +387,92 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
+    public RestResult findPwdByCode(LoginRequest request) {
+        String code = request.getCode();
+        String mobile = request.getMobile();
+        String password = request.getPassword();
+        /**
+         * 参数非空校验
+         */
+        RestResult check = CheckParamUtil.check(request.getCode(), request.getMobile(), request.getPassword());
+        if (check.getCode() != 0) {
+            return check;
+        }
+        /**
+         * 手机验证码校验
+         */
+        RestResult checkCodeResult = checkMobileCode(code, mobile);
+        if (checkCodeResult.getCode() != 0) {
+            return checkCodeResult;
+        }
+        User user = userMapper.selectByMobile(mobile);
+        if (user == null) {
+            return RestResult.error(RestResult.RestCode.ERROR_USER_NOT_EXIST);
+        }
+        User newUser = new User();
+        newUser.setId(user.getId());
+        newUser.setPasswdMd5(MD5Util.encode(password));
+        userMapper.updateByPrimaryKeySelective(newUser);
+        return RestResult.ok(null);
+    }
+
+    @Override
     public RestResult loginWithPwd(LoginRequest request) {
         String mobile = request.getMobile();
         String password = request.getPassword();
         String clientId = request.getClientId();
-        return null;
+        /**
+         * 参数非空校验
+         */
+        RestResult check = CheckParamUtil.check(request.getMobile(), request.getClientId(), request.getPassword());
+        if (check.getCode() != 0) {
+            return check;
+        }
+        User user = userMapper.selectByMobile(mobile);
+        if (!MD5Util.encode(password).equals(user.getPasswdMd5())) {
+            return RestResult.error(RestResult.RestCode.ERROR_PASSWORD);
+        }
+        //使用用户id获取token
+        IMResult<OutputGetIMTokenData> tokenResult = new IMResult<>();
+        try {
+            tokenResult = UserAdmin.getUserToken(user.getUid(), clientId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (tokenResult.getErrorCode() != ErrorCode.ERROR_CODE_SUCCESS) {
+            LOG.error("Get user failure {}", tokenResult.code);
+            return RestResult.error(RestResult.RestCode.ERROR_SERVER_ERROR);
+        }
+
+        //返回用户id，token和是否新建
+        LoginResponse response = new LoginResponse();
+        response.setUserId(user.getUid());
+        response.setToken(tokenResult.getResult().getToken());
+
+        sendTextMessage(user.getUid(), mIMConfig.welcome_for_new_user);
+
+        return RestResult.ok(response);
+    }
+
+    /**
+     * 校验手机验证码是否正确
+     *
+     * @param code
+     * @param mobile
+     * @return
+     */
+    private RestResult checkMobileCode(String code, String mobile) {
+        if (StringUtils.isEmpty(superCode) || !code.equals(superCode)) {
+            Record record = mRecords.get(mobile);
+            if (record == null || !record.getCode().equals(code)) {
+                LOG.error("not empty or not correct");
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_INCORRECT);
+            }
+            if (System.currentTimeMillis() - record.getTimestamp() > 5 * 60 * 1000) {
+                LOG.error("Code expired. timestamp {}, now {}", record.getTimestamp(), System.currentTimeMillis());
+                return RestResult.error(RestResult.RestCode.ERROR_CODE_EXPIRED);
+            }
+        }
+        return RestResult.ok(null);
     }
 }
