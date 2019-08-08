@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wildfirechat.app.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="cn.wildfirechat.app.model.User">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="_uid" property="uid" jdbcType="VARCHAR"/>
+        <result column="_name" property="name" jdbcType="VARCHAR"/>
+        <result column="_display_name" property="displayName" jdbcType="VARCHAR"/>
+        <result column="_gender" property="gender" jdbcType="INTEGER"/>
+        <result column="_portrait" property="portrait" jdbcType="VARCHAR"/>
+        <result column="_mobile" property="mobile" jdbcType="VARCHAR"/>
+        <result column="_email" property="email" jdbcType="VARCHAR"/>
+        <result column="_address" property="address" jdbcType="VARCHAR"/>
+        <result column="_company" property="company" jdbcType="VARCHAR"/>
+        <result column="_social" property="social" jdbcType="VARCHAR"/>
+        <result column="_passwd_md5" property="passwdMd5" jdbcType="VARCHAR"/>
+        <result column="_salt" property="salt" jdbcType="VARCHAR"/>
+        <result column="_type" property="type" jdbcType="TINYINT"/>
+        <result column="_dt" property="dt" jdbcType="BIGINT"/>
+        <result column="_createTime" property="createtime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <resultMap id="ResultMapWithBLOBs" type="cn.wildfirechat.app.model.User" extends="BaseResultMap">
+        <result column="_extra" property="extra" jdbcType="LONGVARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, _uid, _name, _display_name, _gender, _portrait, _mobile, _email, _address, _company, 
+    _social, _passwd_md5, _salt, _type, _dt, _createTime
+  </sql>
+    <sql id="Blob_Column_List">
+    _extra
+  </sql>
+    <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from t_user
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectByMobile" resultMap="BaseResultMap" parameterType="string">
+        select id,_passwd_md5,_uid from t_user where _mobile = #{mobile}
+    </select>
+    <insert id="insert" parameterType="cn.wildfirechat.app.model.User">
+    insert into t_user (id, _uid, _name, 
+      _display_name, _gender, _portrait, 
+      _mobile, _email, _address, 
+      _company, _social, _passwd_md5, 
+      _salt, _type, _dt, _createTime, 
+      _extra)
+    values (#{id,jdbcType=INTEGER}, #{uid,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
+      #{displayName,jdbcType=VARCHAR}, #{gender,jdbcType=INTEGER}, #{portrait,jdbcType=VARCHAR}, 
+      #{mobile,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, 
+      #{company,jdbcType=VARCHAR}, #{social,jdbcType=VARCHAR}, #{passwdMd5,jdbcType=VARCHAR}, 
+      #{salt,jdbcType=VARCHAR}, #{type,jdbcType=TINYINT}, #{dt,jdbcType=BIGINT}, #{createtime,jdbcType=TIMESTAMP}, 
+      #{extra,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="cn.wildfirechat.app.model.User">
+        insert into t_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="uid != null">
+                _uid,
+            </if>
+            <if test="name != null">
+                _name,
+            </if>
+            <if test="displayName != null">
+                _display_name,
+            </if>
+            <if test="gender != null">
+                _gender,
+            </if>
+            <if test="portrait != null">
+                _portrait,
+            </if>
+            <if test="mobile != null">
+                _mobile,
+            </if>
+            <if test="email != null">
+                _email,
+            </if>
+            <if test="address != null">
+                _address,
+            </if>
+            <if test="company != null">
+                _company,
+            </if>
+            <if test="social != null">
+                _social,
+            </if>
+            <if test="passwdMd5 != null">
+                _passwd_md5,
+            </if>
+            <if test="salt != null">
+                _salt,
+            </if>
+            <if test="type != null">
+                _type,
+            </if>
+            <if test="dt != null">
+                _dt,
+            </if>
+            <if test="createtime != null">
+                _createTime,
+            </if>
+            <if test="extra != null">
+                _extra,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="uid != null">
+                #{uid,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="displayName != null">
+                #{displayName,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null">
+                #{gender,jdbcType=INTEGER},
+            </if>
+            <if test="portrait != null">
+                #{portrait,jdbcType=VARCHAR},
+            </if>
+            <if test="mobile != null">
+                #{mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="company != null">
+                #{company,jdbcType=VARCHAR},
+            </if>
+            <if test="social != null">
+                #{social,jdbcType=VARCHAR},
+            </if>
+            <if test="passwdMd5 != null">
+                #{passwdMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="salt != null">
+                #{salt,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=TINYINT},
+            </if>
+            <if test="dt != null">
+                #{dt,jdbcType=BIGINT},
+            </if>
+            <if test="createtime != null">
+                #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="extra != null">
+                #{extra,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="cn.wildfirechat.app.model.User">
+        update t_user
+        <set>
+            <if test="uid != null">
+                _uid = #{uid,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                _name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="displayName != null">
+                _display_name = #{displayName,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null">
+                _gender = #{gender,jdbcType=INTEGER},
+            </if>
+            <if test="portrait != null">
+                _portrait = #{portrait,jdbcType=VARCHAR},
+            </if>
+            <if test="mobile != null">
+                _mobile = #{mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                _email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                _address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="company != null">
+                _company = #{company,jdbcType=VARCHAR},
+            </if>
+            <if test="social != null">
+                _social = #{social,jdbcType=VARCHAR},
+            </if>
+            <if test="passwdMd5 != null">
+                _passwd_md5 = #{passwdMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="salt != null">
+                _salt = #{salt,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                _type = #{type,jdbcType=TINYINT},
+            </if>
+            <if test="dt != null">
+                _dt = #{dt,jdbcType=BIGINT},
+            </if>
+            <if test="createtime != null">
+                _createTime = #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="extra != null">
+                _extra = #{extra,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="cn.wildfirechat.app.model.User">
+    update t_user
+    set _uid = #{uid,jdbcType=VARCHAR},
+      _name = #{name,jdbcType=VARCHAR},
+      _display_name = #{displayName,jdbcType=VARCHAR},
+      _gender = #{gender,jdbcType=INTEGER},
+      _portrait = #{portrait,jdbcType=VARCHAR},
+      _mobile = #{mobile,jdbcType=VARCHAR},
+      _email = #{email,jdbcType=VARCHAR},
+      _address = #{address,jdbcType=VARCHAR},
+      _company = #{company,jdbcType=VARCHAR},
+      _social = #{social,jdbcType=VARCHAR},
+      _passwd_md5 = #{passwdMd5,jdbcType=VARCHAR},
+      _salt = #{salt,jdbcType=VARCHAR},
+      _type = #{type,jdbcType=TINYINT},
+      _dt = #{dt,jdbcType=BIGINT},
+      _createTime = #{createtime,jdbcType=TIMESTAMP},
+      _extra = #{extra,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+    <update id="updateByPrimaryKey" parameterType="cn.wildfirechat.app.model.User">
+    update t_user
+    set _uid = #{uid,jdbcType=VARCHAR},
+      _name = #{name,jdbcType=VARCHAR},
+      _display_name = #{displayName,jdbcType=VARCHAR},
+      _gender = #{gender,jdbcType=INTEGER},
+      _portrait = #{portrait,jdbcType=VARCHAR},
+      _mobile = #{mobile,jdbcType=VARCHAR},
+      _email = #{email,jdbcType=VARCHAR},
+      _address = #{address,jdbcType=VARCHAR},
+      _company = #{company,jdbcType=VARCHAR},
+      _social = #{social,jdbcType=VARCHAR},
+      _passwd_md5 = #{passwdMd5,jdbcType=VARCHAR},
+      _salt = #{salt,jdbcType=VARCHAR},
+      _type = #{type,jdbcType=TINYINT},
+      _dt = #{dt,jdbcType=BIGINT},
+      _createTime = #{createtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
