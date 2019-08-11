@@ -1,9 +1,11 @@
-package cn.wildfirechat.app.service;
+package cn.wildfirechat.app.service.impl;
 
 import cn.wildfirechat.app.config.IMConfig;
 import cn.wildfirechat.app.mapper.UserMapper;
 import cn.wildfirechat.app.model.User;
 import cn.wildfirechat.app.pojo.*;
+import cn.wildfirechat.app.service.LoginService;
+import cn.wildfirechat.app.service.SmsService;
 import cn.wildfirechat.app.util.CheckParamUtil;
 import cn.wildfirechat.app.util.MD5Util;
 import cn.wildfirechat.app.util.Utils;

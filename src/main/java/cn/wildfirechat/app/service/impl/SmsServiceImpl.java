@@ -1,7 +1,8 @@
-package cn.wildfirechat.app.service;
+package cn.wildfirechat.app.service.impl;
 
 import cn.wildfirechat.app.pojo.RestResult;
 import cn.wildfirechat.app.config.TencentSMSConfig;
+import cn.wildfirechat.app.service.SmsService;
 import com.github.qcloudsms.SmsSingleSender;
 import com.github.qcloudsms.SmsSingleSenderResult;
 import com.github.qcloudsms.httpclient.HTTPException;

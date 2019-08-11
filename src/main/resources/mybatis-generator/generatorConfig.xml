@@ -30,7 +30,7 @@
 
 
 		<sqlMapGenerator targetProject="./src/main/resources"
-			targetPackage="mybatis.mapper">
+			targetPackage="mapper">
 			<property name="enableSubPackages" value="true" />
 		</sqlMapGenerator>
 
